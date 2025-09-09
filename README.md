@@ -1,4 +1,4 @@
-https://rayna-balqis-football-shop.pbp.cs.ui.ac.id/
+https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
 
 1. membuat proyek django dengan perintah "django-admin startproject football-shop"
 2. a. menjalankan perintah "python manage.py startapp main"
