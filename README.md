@@ -4,21 +4,21 @@ https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
 # Soal dan jawaban TI 2
 
 ## 1. Cara membuat proyek Django baru
-membuat proyek django dengan perintah 'django-admin startproject [nama proyek]'
+membuat proyek django dengan perintah `django-admin startproject [nama proyek]`
 ## 2. Cara membuat aplikasi dengan nama main
-1. menjalankan perintah "python manage.py startapp main"  
+1. menjalankan perintah `python manage.py startapp main`
 2. menambahkan 'main' ke dalam INSTALLED_APPS  
 3. menghubungkan main dengan proyek utama  
 ## 3.Cara melakukan routing pada agar dapat menjalankan aplikasi main
 Membuat berkas urls.py dan menambahkan app_name = 'main' dan menambah pada ulrpatterns lalu mengimport fungsi include dari django urls dan menginclude path 'main.urls' pada urlpatterns
 ## 4. Cara membuat model pada aplikasi main dengan nama Product dan memiliki atribut wajib 
 Menambahkan class Product pada models.py lalu menambahkan atribut dengan requirements yang tertera  
-name sebagai nama item dengan tipe CharField.  
-price sebagai harga item dengan tipe IntegerField.  
-description sebagai deskripsi item dengan tipe TextField.  
-thumbnail sebagai gambar item dengan tipe URLField.  
-category sebagai kategori item dengan tipe CharField.  
-is_featured sebagai status unggulan item dengan tipe BooleanField.  
+`name sebagai nama item dengan tipe CharField. ` 
+`price sebagai harga item dengan tipe IntegerField. ` 
+`description sebagai deskripsi item dengan tipe TextField. ` 
+`thumbnail sebagai gambar item dengan tipe URLField.  `
+`category sebagai kategori item dengan tipe CharField.  `
+`is_featured sebagai status unggulan item dengan tipe BooleanField.  `
 ## 5. Cara membuat fungsi pada views.py untuk dikembalikan ke dalam sebuah template HTML yang menampilkan nama aplikasi serta nama dan kelas 
 Membuat fungsi bernama show main yang diisi dengan variabel yang berisi dengan isinya sesuai dengan permintaan dan menyambungkannya dengan main.html yang berada pada direktori templates
 ## 6. Cara membuat sebuah routing pada urls.py aplikasi main untuk memetakan fungsi yang telah dibuat pada views.py
