@@ -28,7 +28,7 @@ https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
     ![Diagram](images/PBP.jpg)
 
     urls.py menerima request dan menentukan viewmana yang akan bertanggung jawab, lalu views.py akan menjalankan logic dan interact dengan models.py yang akan berkomunikasi dengan database untuk ambil/simpan data, dan template html akan merender halaman dengan data yang sudah berikan
-    
+
 ## 9. Jelaskan peran settings.py dalam proyek Django!
     Settings.py berfungsi sebagai file konfigurasi pada sebuah proyek django. Pengaturan inti seperikoneksi database, aplikasi apa saja yang digunakan, keamanan, sampai konfigurasi yang statis dilakukan oleh settings.py.
 ## 10. Bagaimana cara kerja migrasi database di Django?
@@ -47,3 +47,4 @@ https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
     3. Menggunakan pola arsitektur yang terorganisi (MVT)
 
 ## 12. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?
+    Tidak ada, overall good. Thankyou asdos PBP :D
