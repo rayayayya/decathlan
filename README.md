@@ -4,10 +4,11 @@ https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
 # Soal dan jawaban TI 2
 
 ## 1. Cara membuat proyek Django baru
-membuat proyek django dengan perintah "django-admin startproject football-shop"
+membuat proyek django dengan perintah "django-admin startproject [nama proyek]"
 ## 2. Cara membuat aplikasi dengan nama main
 a. menjalankan perintah "python manage.py startapp main"
 b. menambahkan 'main' ke dalam INSTALLED_APPS
+c. menghubungkan main dengan proyek utama
 ## 3.Cara melakukan routing pada agar dapat menjalankan aplikasi main
 Membuat berkas urls.py dan menambahkan app_name = 'main' dan menambah pada ulrpatterns lalu mengimport fungsi include dari django urls dan menginclude path 'main.urls' pada urlpatterns
 ## 4. Cara membuat model pada aplikasi main dengan nama Product dan memiliki atribut wajib 
