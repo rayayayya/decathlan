@@ -10,7 +10,6 @@ class Product(models.Model):
     category = models.CharField(max_length=50) 
     is_featured = models.BooleanField(default=False)  
 
-    # tambahan opsional
     stock = models.PositiveIntegerField(default=0) 
     rating = models.FloatField(default=0.0)  
     brand = models.CharField(max_length=50, blank=True, null=True)  
