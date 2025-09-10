@@ -1,5 +1,6 @@
 # Link deployment
-https://pbp.cs.ui.ac.id/rayna.balqis/decathlan
+
+https://rayna-balqis-decathlan.pbp.cs.ui.ac.id/
 
 # Soal dan jawaban TI 2
 
