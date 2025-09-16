@@ -30,7 +30,11 @@ PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "rayna-balqis-decathlan.pbp.cs.ui.ac.id"]
-CSRF_TOKEN = ["https://rayna-balqis-decathlan.pbp.cs.ui.ac.id"]
+CSRF_TRUSTED_ORIGINS = [
+    'https://rayna-balqis-decathlan.pbp.cs.ui.ac.id',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 # Application definition
 
