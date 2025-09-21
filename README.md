@@ -272,3 +272,203 @@ Tidak
 ![XML_ID](images/xml_id.jpg)
 ![JSON](images/json.jpg)
 ![JSON_ID](images/json_id.jpg)
+
+# Soal dan jawaban TI 4
+
+## Apa itu Django AuthenticationForm? Jelaskan juga kelebihan dan kekurangannya
+Django authentiactionform adalah formulir built in dari Django yang dapat giguanakn untuk menghandle proses autheticate user. Kelebihannya adalah siap pakaijadi tidak perlu membuat dari nol, dan juga mudah untuk disesuaikan dengan tampilan yang diinginkan, namun tidak cocok untuk diaplikasikan pada program yang kompleks, karena jika tidak dibuat dengan benar, bdapat menimbulkan masalah yang besar.
+
+## Apa perbedaan antara autentikasi dan otorisasi? Bagaiamana Django mengimplementasikan kedua konsep tersebut?
+Autentikasi adalah proses verifikasi identitas pengguna untuk memastikan bahwa pengguna benar-benar pengguna yang diklaim sedankan otorisasi menentukan tingkat akses yang diberikan pada pengguna setelah diautentikasi
+
+## Apa saja kelebihan dan kekurangan session dan cookies dalam konteks menyimpan state di aplikasi web?
+Kelebihan session adalah memiliki keamanan tinggi karena data disimpan di server dan bisa menyimpan data besar sedangkan kekurangannya adalah membutuhkan penyimpanan yang besar.
+Kelebihan cookies adalah ringan dan tidak membebani server dan fleksibel sedangkan kekurangan cookie adalah kapaistas penyimpanannya terbatas
+
+## Apakah penggunaan cookies aman secara default dalam pengembangan web, atau apakah ada risiko potensial yang harus diwaspadai? Bagaimana Django menangani hal tersebut?
+Risiko potensial yang mungkin dihadapi adalah akses tidak sah dan pelacakan privasi, tetapi dihandle oleh django dengan pengaturan atribut `Secure` `HttpOnly` dan `SameSite` serta enkripsi data
+
+## Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)
+
+### 1. Mengimplementasikan fungsi registrasi, login, dan logout untuk memungkinkan pengguna mengakses aplikasi sebelumnya sesuai dengan status login/logoutnya.
+
+Fungsi registrasi
+1. Import `UserCreationForm`, `AuthenticationForm`, `messages`, `authenticate`, `login`, `logout` di views.py
+```python
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+```
+2. Menambahkan fungsi register, login, logout user ke dalam views.py
+
+```python
+def register(request):
+    form = UserCreationForm()
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been successfully created!')
+            return redirect('main:login')
+    context = {'form':form}
+    return render(request, 'register.html', context)
+```
+
+```python
+def login_user(request):
+   if request.method == 'POST':
+      form = AuthenticationForm(data=request.POST)
+
+      if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('main:show_main')
+
+   else:
+      form = AuthenticationForm(request)
+   context = {'form': form}
+   return render(request, 'login.html', context)
+```
+```python
+def logout_user(request):
+    logout(request)
+    return redirect('main:login')
+```
+
+3. Menambah file html baru bernama `register.html`,`login.html`, `logout.html` di direktori templates yang ada dimain dengan isi
+
+```python
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Register</title>
+{% endblock meta %}
+
+{% block content %}
+
+<div>
+  <h1>Register</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      <tr>
+        <td></td>
+        <td><input type="submit" name="submit" value="Daftar" /></td>
+      </tr>
+    </table>
+  </form>
+
+  {% if messages %}
+  <ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock content %}
+```
+
+```python
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Login</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="login">
+  <h1>Login</h1>
+
+  <form method="POST" action="">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      <tr>
+        <td></td>
+        <td><input class="btn login_btn" type="submit" value="Login" /></td>
+      </tr>
+    </table>
+  </form>
+
+  {% if messages %}
+  <ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %} Don't have an account yet?
+  <a href="{% url 'main:register' %}">Register Now</a>
+</div>
+
+{% endblock content %}
+```
+```python
+...
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+</a>
+...
+```
+
+4. Mengimpor fungsi register,login, dan logout_user ke dalam urls.py yang ada di direktori main dan menambahkan path ketiga url tersebut ke dalam urlpatterns
+
+2. Membuat dua (2) akun pengguna dengan masing-masing tiga (3) dummy data menggunakan model yang telah dibuat sebelumnya untuk setiap akun di lokal.
+- Melakukan registrasi dengan mengisi username dan passowrd
+- Login ke akun yang sudah dibuat
+- Menambahkan masing-masing 3 produk untuk tiap akun
+
+3. Menghubungkan model Product dengan User
+- Menimport User di dalam models.py
+- Pada model Product menambahkan line user
+```python
+class News(models.Model):
+     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+```
+- mengubah kode pada fungsi create_product
+```python
+def create_product(request):
+    form = ProductForm(request.POST or None)
+
+    if form.is_valid() and request.method == 'POST':
+        product_entry = form.save(commit = False)
+        product_entry.user = request.user
+        product_entry.save()
+        return redirect('main:show_main')
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "create_product.html", context)
+```
+- modifikasi fungsi show_main
+```python
+@login_required(login_url='/login')
+def show_main(request):
+    filter_type = request.GET.get("filter", "all")
+    if filter_type =="all":
+        product_list = Product.objects.all()
+    else:
+        product_list = Product.objects.filter(user=request.user)
+
+    context = {
+        'npm' : '2406400373',
+        'name': 'Rayna Balqis',
+        'class': 'PBP D',
+        'product_list': product_list,
+        'last_login': request.COOKIES.get('last_login', 'Never')
+
+    }
+
+    return render(request, "main.html", context)
+```
+
+- menambahkan tombol filtr pada main.html
+- menampilkan nma author di product_details
+- migrate
+
+4. Menampilkan detail informasi pengguna yang sedang logged in seperti username dan menerapkan cookies seperti last_login pada halaman utama aplikasi.
