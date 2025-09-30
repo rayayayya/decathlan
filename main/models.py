@@ -49,4 +49,5 @@ class Product(models.Model):
 
     def get_price_rupiah(self):
         return "Rp {:,}".format(int(self.price)).replace(",", ".")
+
     

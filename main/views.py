@@ -21,7 +21,7 @@ def show_main(request):
 
     context = {
         'npm' : '2406400373',
-        'name': 'Rayna Balqis',
+        'name': request.user.username,
         'class': 'PBP D',
         'product_list': product_list,
         'last_login': request.COOKIES.get('last_login', 'Never')
@@ -44,6 +44,25 @@ def create_product(request):
     }
 
     return render(request, "create_product.html", context)
+
+
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    form = ProductForm(request.POST or None, instance=Product)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:show_main')
+    context ={
+        'form' : form
+    }
+
+    return render (request, "edit_product.html", context)
+
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    product.delete()
+    return redirect('main:show_main')
+
 
 @login_required(login_url='/login')
 def show_products(request, id):

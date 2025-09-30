@@ -471,4 +471,111 @@ def show_main(request):
 - menampilkan nma author di product_details
 - migrate
 
-4. Menampilkan detail informasi pengguna yang sedang logged in seperti username dan menerapkan cookies seperti last_login pada halaman utama aplikasi.
+# Soal dan jawaban TI 5
+
+## Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
+
+### urutan prioritas pengambilan CSS selector didasarkan pada spesifisitas, yang menentukan seberapa kuat suatu aturan diterapkan. Urutannya ada pada
+1. inline style
+2. pemilih ID
+3. pemilih kelas
+4. pesudo class dan atribut
+5. elemen/tag
+
+## Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa!
+
+Responive design penting untuk memastikan user experience yang konsisten di berbagai ukuran layar, selain itu bisa meningkatkan SEO karena search engine seperti google mengutamakan situs yang mobile friendly.
+
+
+## Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut!
+### 
+Margin: Jarak antar satu elemen dengan elemen lain di sekitarnya
+
+```css
+div {
+  margin: 20px; 
+}
+```
+Padding: Jarak antara isi elemen dengan tepi dalam elemen 
+
+```css
+div {
+  padding: 15px;
+}
+```
+
+Border: Garis tepi di sekeliling elemen
+
+```css
+div {
+  border: 2px solid black;
+}
+```
+
+# Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+
+Flexbox
+Mengatur elemen dalam bentuk horizontal atau vertikal
+
+Kegunaan:
+1. Menyusun elemen secara horizontal atau vertikal dengan mudah
+2. Membuat layout yang responsif terhadap ukuran layar
+3. Mengatur aignment
+
+```css
+<div class="flex-container">
+  <div>Box 1</div>
+  <div>Box 2</div>
+  <div>Box 3</div>
+</div>
+
+<style>
+  .flex-container {
+    display: flex;            
+    justify-content: space-around; 
+    align-items: center;         
+  }
+  .flex-container div {
+    background: lightblue;
+    padding: 20px;
+  }
+</style>
+```
+
+Grid layout
+Untuk mengatur baris dan kolom.
+
+Kegunaan:
+
+1. Membuat layout halaman penuh: header, sidebar, content, footer.
+2. Mengatur posisi elemen berdasarkan baris dan kolom.
+3. Fleksibel untuk desain kompleks dan responsif.
+
+```css
+<div class="grid-container">
+  <div class="header">Header</div>
+  <div class="sidebar">Sidebar</div>
+  <div class="content">Content</div>
+  <div class="footer">Footer</div>
+</div>
+
+<style>
+  .grid-container {
+    display: grid; 
+    grid-template-columns: 200px 1fr; 
+    grid-template-rows: auto 1fr auto; 
+    gap: 10px; 
+  }
+  .header { grid-column: span 2; background: lightgreen; }
+  .sidebar { background: lightcoral; }
+  .content { background: lightblue; }
+  .footer { grid-column: span 2; background: lightgoldenrodyellow; }
+</style>
+```
+
+# Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+
+1. Menambahkan tailwind pada file base.html
+2. Menambah fitur edit product dengan menambah fungsi edit produk di views.py, menambah berkas baru bernama edit_product.html, import fungsi edit produk pada urls dan menambahkan path pada urlpattern
+3. Menambah fitur hapus produk dengan menambah fungsi hapus produk di views.py, import fungsi hapus produk pada urls dan menambahkan path pada urlpattern
+4. Menambahkan navigation bar dengan cara membuat file html di template main root kemudian ditambahkan pada main.html
