@@ -476,11 +476,11 @@ def show_main(request):
 ## Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
 
 ### urutan prioritas pengambilan CSS selector didasarkan pada spesifisitas, yang menentukan seberapa kuat suatu aturan diterapkan. Urutannya ada pada
+
 1. inline style
-2. pemilih ID
-3. pemilih kelas
-4. pesudo class dan atribut
-5. elemen/tag
+2. ID selector
+3. classes selector
+4. element selector
 
 ## Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa!
 
@@ -579,3 +579,8 @@ Kegunaan:
 2. Menambah fitur edit product dengan menambah fungsi edit produk di views.py, menambah berkas baru bernama edit_product.html, import fungsi edit produk pada urls dan menambahkan path pada urlpattern
 3. Menambah fitur hapus produk dengan menambah fungsi hapus produk di views.py, import fungsi hapus produk pada urls dan menambahkan path pada urlpattern
 4. Menambahkan navigation bar dengan cara membuat file html di template main root kemudian ditambahkan pada main.html
+5. Menambahkan file global.css pada direktori css yang berada pada direktori statis
+6. Menghubungkan file global.css dengan tailwind pada file bae.html
+`<link rel="stylesheet" href="{% static 'css/global.css' %}"/`
+7. Mengatur style pada global.css, dan style pada file html seperti edit produk, add produk, main, login, register, dan detail produk
+8. Membuat file card produk pada direktori templates
