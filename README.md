@@ -512,7 +512,7 @@ div {
 }
 ```
 
-# Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+## Jelaskan konsep flex box dan grid layout beserta kegunaannya!
 
 Flexbox
 Mengatur elemen dalam bentuk horizontal atau vertikal
@@ -573,7 +573,7 @@ Kegunaan:
 </style>
 ```
 
-# Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+## Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
 
 1. Menambahkan tailwind pada file base.html
 2. Menambah fitur edit product dengan menambah fungsi edit produk di views.py, menambah berkas baru bernama edit_product.html, import fungsi edit produk pada urls dan menambahkan path pada urlpattern
@@ -584,3 +584,20 @@ Kegunaan:
 `<link rel="stylesheet" href="{% static 'css/global.css' %}"/`
 7. Mengatur style pada global.css, dan style pada file html seperti edit produk, add produk, main, login, register, dan detail produk
 8. Membuat file card produk pada direktori templates
+
+
+# Soal dan jawaban TI 6
+## Apa perbedaan antara synchronous request dan asynchronous request?
+synchronous request dilakukan dengan mengeksekusi setiap request secara berurutan, satu persatu, sedangkan pada asynchornous request, program dapat memulai tugas lain tanpa harus menunggu tugas yang sebelumnya selesai
+
+## Bagaimana AJAX bekerja di Django (alur request–response)?
+Saat ada event terjadi, javascript membuat seuat CMLHttpRequest object yang akan mengirimkan request ke server, setelah itu server akan memproses request tersebut, seteah itu server mengembalika response kembali kepada halama web dan response dibaca oleh javascript. Aksi berikutnya akan dipicu oleh javascript sesuai dengan lankah yang dibuat
+
+## Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
+Menggunakan AJAX dapat meningkatkan user experience, kinerja aplikasi lebih cepat, pengurangan penggunaan bandwidth, dan kemampuan untuk membuat web yang lebih dinamis dan interaktif
+
+## Bagaimana cara memastikan keamanan saat menggunakan AJAX untuk fitur Login dan Register di Django?
+Untuk memastikan keamanan fitur Login dan Register dengan AJAX di Django, Anda wajib mengaktifkan dan menerapkan perlindungan CSRF menggunakan {% csrf_token %} di formulir HTML atau header X-CSRFToken di permintaan AJAX
+
+## Bagaimana AJAX mempengaruhi pengalaman pengguna (User Experience) pada website?
+AJAX menciptakan website yang leibh interaktif, responsif, dan cepatkarena data dapat diperbarui tanpa perlu mereload seluruh halaman

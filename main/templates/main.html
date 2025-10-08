@@ -2,11 +2,12 @@
 {% load static %}
 
 {% block meta %}
-<title>Football News</title>
+<title>Newest Products</title>
 {% endblock meta %}
 
 {% block content %}
 {% include 'navbar.html' %}
+
 <div class="bg-gray-50 w-full pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -17,12 +18,15 @@
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
       <div class="flex space-x-3 mb-4 sm:mb-0">
-        <a href="?" class="{% if request.GET.filter == 'all' or not request.GET.filter  %} bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-blue-600 hover:text-white">
+        <button id="filter-all" class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-blue-600">
           All Product
-        </a>
-        <a href="?filter=my" class="{% if request.GET.filter == 'my' %} bg-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-blue-600 hover:text-white">
+        </button>
+        <button id="filter-my" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-blue-600 hover:text-white">
           My Product
-        </a>
+        </button>
+        <button id="addProductBtn" type="button" class="bg-green-600 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-green-700">
+          Add Product
+        </button>
       </div>
       {% if user.is_authenticated %}
         <div class="text-sm text-gray-500">
@@ -31,23 +35,390 @@
       {% endif %}
     </div>
 
-    {% if not product_list %}
-      <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <div class="w-32 h-32 mx-auto mb-4">
-          <img src="{% static 'image/no-news.png' %}" alt="No product available" class="w-full h-full object-contain">
-        </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No product found</h3>
-        <a href="{% url 'main:create_product' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-          Add Product
-        </a>
+    <!-- Loading State -->
+    <div id="loading" class="hidden flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <p class="text-red-700" id="errorText">Failed to load products</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty" class="hidden bg-white rounded-lg border border-gray-200 p-12 text-center">
+      <div class="w-32 h-32 mx-auto mb-4">
+        <img src="{% static 'image/no-news.png' %}" alt="No product available" class="w-full h-full object-contain">
       </div>
-    {% else %}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for product in product_list %}
-          {% include 'card_product.html' with product=product %}
-        {% endfor %}
-      </div>
-    {% endif %}
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No product found</h3>
+      <button id="addProductBtnEmpty" type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        Add Product
+      </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </div>
 </div>
+
+{% include 'modal.html' %}
+
+<script>
+// Configuration
+const PRODUCTS_API_ENDPOINT = "{% url 'main:show_json' %}";
+const CREATE_PRODUCT_ENDPOINT = "{% url 'main:create_product' %}";
+const EDIT_PRODUCT_ENDPOINT = "/edit-product/";
+const DELETE_PRODUCT_ENDPOINT = "/delete-product/";
+const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";
+
+// Category mapping
+const CATEGORY_CHOICES = {
+  'football': 'Football',
+  'basketball': 'Basketball',
+  'badminton': 'Badminton',
+  'running': 'Running',
+  'training': 'Training',
+  'cycling': 'Cycling',
+  'swimming': 'Swimming',
+  'tennis': 'Tennis',
+  'golf': 'Golf',
+  'outdoor': 'Outdoor',
+  'fitness': 'Fitness',
+  'yoga': 'Yoga',
+  'skateboarding': 'Skateboarding',
+  'surfing': 'Surfing',
+  'hiking': 'Hiking',
+  'climbing': 'Climbing',
+  'water_sports': 'Water Sports',
+  'winter_sports': 'Winter Sports',
+  'other': 'Other',
+};
+
+// DOM Elements
+const loadingSpinner = document.getElementById('loading');
+const errorMessage = document.getElementById('error');
+const emptyStateDisplay = document.getElementById('empty');
+const productsGridContainer = document.getElementById('grid');
+const showAllProductsButton = document.getElementById('filter-all');
+const showMyProductsButton = document.getElementById('filter-my');
+const addProductBtn = document.getElementById('addProductBtn');
+const addProductBtnEmpty = document.getElementById('addProductBtnEmpty');
+const productForm = document.getElementById('productForm');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+// Bootstrap Modals
+let productModalBS = null;
+let deleteModalBS = null;
+
+// State Variables
+let activeFilter = 'all';
+let allProductsData = [];
+let currentEditingId = null;
+let deleteTargetId = null;
+
+// Initialize Bootstrap modals
+function initializeModals() {
+  const productModalEl = document.getElementById('productModal');
+  const deleteModalEl = document.getElementById('deleteModal');
+  
+  if (productModalEl) productModalBS = new bootstrap.Modal(productModalEl);
+  if (deleteModalEl) deleteModalBS = new bootstrap.Modal(deleteModalEl);
+}
+
+// Modal Functions
+function showAddProductModal() {
+  currentEditingId = null;
+  document.getElementById('modalTitle').textContent = 'Add Product';
+  document.getElementById('productId').value = '';
+  productForm.reset();
+  if (productModalBS) productModalBS.show();
+}
+
+function hideAddProductModal() {
+  if (productModalBS) productModalBS.hide();
+  currentEditingId = null;
+}
+
+function showDeleteModal(productId) {
+  deleteTargetId = productId;
+  if (deleteModalBS) deleteModalBS.show();
+}
+
+function hideDeleteModal() {
+  if (deleteModalBS) deleteModalBS.hide();
+  deleteTargetId = null;
+}
+
+// Utility Functions
+function showToast(type, message) {
+  const toastHTML = `
+    <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  `;
+  
+  const toastContainer = document.querySelector('.toast-container') || document.createElement('div');
+  toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+  toastContainer.innerHTML = toastHTML;
+  document.body.appendChild(toastContainer);
+  
+  const toastEl = toastContainer.querySelector('.toast');
+  const toast = new bootstrap.Toast(toastEl);
+  toast.show();
+}
+
+function showError(message) {
+  document.getElementById('errorText').textContent = message;
+  errorMessage.classList.remove('hidden');
+  loadingSpinner.classList.add('hidden');
+  productsGridContainer.classList.add('hidden');
+  emptyStateDisplay.classList.add('hidden');
+  
+  setTimeout(() => {
+    errorMessage.classList.add('hidden');
+  }, 5000);
+}
+
+function displayPageSection(show) {
+  const { showLoading = false, showError: showErrorState = false, showEmpty = false, showGrid = false } = show || {};
+  
+  loadingSpinner.classList.toggle('hidden', !showLoading);
+  errorMessage.classList.toggle('hidden', !showErrorState);
+  emptyStateDisplay.classList.toggle('hidden', !showEmpty);
+  productsGridContainer.classList.toggle('hidden', !showGrid);
+}
+
+// Filter Toggle
+function updateFilterButtons(filter) {
+  if (filter === 'all') {
+    showAllProductsButton.classList.add('bg-blue-600', 'text-white');
+    showAllProductsButton.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+    
+    showMyProductsButton.classList.remove('bg-blue-600', 'text-white');
+    showMyProductsButton.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+  } else {
+    showAllProductsButton.classList.remove('bg-blue-600', 'text-white');
+    showAllProductsButton.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+    
+    showMyProductsButton.classList.add('bg-blue-600', 'text-white');
+    showMyProductsButton.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+  }
+}
+
+function handleShowAllProductsClick() {
+  activeFilter = 'all';
+  updateFilterButtons('all');
+  filterAndRender();
+}
+
+function handleShowMyProductsClick() {
+  if (!CURRENT_USER_ID) {
+    showToast('error', 'Please login to view your products');
+    return;
+  }
+  activeFilter = 'my';
+  updateFilterButtons('my');
+  filterAndRender();
+}
+
+// Get readable category name
+function getReadableCategoryName(categoryCode) {
+  return CATEGORY_CHOICES[categoryCode] || categoryCode;
+}
+
+// Format currency
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+// Build product card
+function buildProductCardElement(product) {
+  const isOwner = String(product.user_id) === String(CURRENT_USER_ID);
+  const categoryLabel = getReadableCategoryName(product.category);
+  const isHot = product.product_views > 20;
+  const imageUrl = product.thumbnail || `{% static 'image/default-product.png' %}`;
+  
+  const hotLabel = isHot ? `<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Hot</span>` : '';
+  
+  const editDeleteHtml = isOwner 
+    ? `<div class="flex space-x-2">
+        <button onclick="editProduct('${product.id}')" type="button" class="text-blue-600 hover:text-blue-700 text-sm transition-colors font-medium">Edit</button>
+        <button onclick="showDeleteModal('${product.id}')" type="button" class="text-red-600 hover:text-red-700 text-sm transition-colors font-medium">Delete</button>
+      </div>`
+    : '';
+  
+  return `
+    <article class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full">
+      <div class="aspect-[16/9] relative overflow-hidden">
+        <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover" onerror="this.src='{% static 'image/default-product.png' %}'">
+        <div class="absolute top-3 left-3">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-600 text-white">${categoryLabel}</span>
+        </div>
+        <div class="absolute top-3 right-3">
+          ${hotLabel}
+        </div>
+      </div>
+      <div class="p-5 flex flex-col flex-1">
+        <div class="flex items-center text-sm text-gray-500 mb-3">
+          <span>${product.product_views} views</span>
+          <span class="mx-2">•</span>
+          <span class="font-semibold text-green-600">${formatCurrency(product.price)}</span>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight">${product.name}</h3>
+        <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">${product.description || 'No description'}</p>
+        
+        <div class="space-y-1 mb-4 text-sm text-gray-600">
+          ${product.brand ? `<div><span class="font-medium">Brand:</span> ${product.brand}</div>` : ''}
+          ${product.stock !== undefined ? `<div><span class="font-medium">Stock:</span> ${product.stock}</div>` : ''}
+        </div>
+        
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <a href="/product/${product.id}/" class="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">See more</a>
+          ${editDeleteHtml}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+// Render products
+function renderProducts(products) {
+  if (!products || products.length === 0) {
+    displayPageSection({ showEmpty: true });
+    return;
+  }
+  
+  productsGridContainer.innerHTML = products.map(product => buildProductCardElement(product)).join('');
+  displayPageSection({ showGrid: true });
+}
+
+// Filter and display products
+function filterAndRender() {
+  displayPageSection({ showLoading: true });
+  
+  const filteredProducts = activeFilter === 'all' 
+    ? allProductsData 
+    : allProductsData.filter(product => String(product.user_id) === String(CURRENT_USER_ID));
+  
+  renderProducts(filteredProducts);
+}
+
+// Fetch products from server
+async function fetchProductsFromServer() {
+  try {
+    displayPageSection({ showLoading: true });
+    
+    const response = await fetch(PRODUCTS_API_ENDPOINT, {
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products data from server');
+    }
+
+    const productsData = await response.json();
+    allProductsData = Array.isArray(productsData) ? productsData : productsData.products || [];
+    
+    filterAndRender();
+  } catch (error) {
+    console.error('Error loading products:', error);
+    showError('Failed to load products');
+  }
+}
+
+function editProduct(productId) {
+  const product = allProductsData.find(p => p.id === productId);
+  if (!product) return;
+  
+  currentEditingId = productId;
+  document.getElementById('modalTitle').textContent = 'Edit Product';
+  document.getElementById('productId').value = product.id;
+  document.getElementById('name').value = product.name;
+  document.getElementById('price').value = product.price;
+  document.getElementById('description').value = product.description || '';
+  document.getElementById('category').value = product.category || 'other';
+  document.getElementById('brand').value = product.brand || '';
+  document.getElementById('stock').value = product.stock || '';
+  
+  if (productModalBS) productModalBS.show();
+}
+
+// Event Listeners
+productForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(productForm);
+  const endpoint = currentEditingId 
+    ? `${EDIT_PRODUCT_ENDPOINT}${currentEditingId}/`
+    : CREATE_PRODUCT_ENDPOINT;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      },
+      body: formData
+    });
+    
+    if (response.ok) {
+      const message = currentEditingId ? 'Product updated successfully!' : 'Product created successfully!';
+      showToast('success', message);
+      hideAddProductModal();
+      fetchProductsFromServer();
+    } else {
+      showToast('error', 'Failed to save product');
+    }
+  } catch (error) {
+    console.error('Error saving product:', error);
+    showToast('error', 'Failed to save product');
+  }
+});
+
+confirmDeleteBtn.addEventListener('click', async () => {
+  if (!deleteTargetId) return;
+  
+  try {
+    const response = await fetch(`${DELETE_PRODUCT_ENDPOINT}${deleteTargetId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      }
+    });
+    
+    if (response.ok) {
+      showToast('success', 'Product deleted successfully!');
+      hideDeleteModal();
+      fetchProductsFromServer();
+    } else {
+      showToast('error', 'Failed to delete product');
+    }
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    showToast('error', 'Failed to delete product');
+  }
+});
+
+showAllProductsButton.addEventListener('click', handleShowAllProductsClick);
+showMyProductsButton.addEventListener('click', handleShowMyProductsClick);
+addProductBtn.addEventListener('click', showAddProductModal);
+addProductBtnEmpty.addEventListener('click', showAddProductModal);
+
+// Initialize page
+function initializePage() {
+  initializeModals();
+  fetchProductsFromServer();
+}
+
+// Start application
+document.addEventListener('DOMContentLoaded', initializePage);
+</script>
+
 {% endblock content %}
