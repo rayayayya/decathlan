@@ -10,7 +10,58 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
+import requests
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
+import json
+from django.http import JsonResponse
 
+@csrf_exempt
+def create_product_flutter(request):
+    if request.method == 'POST':
+        user = request.user
+        data = json.loads(request.body)
+
+        name = strip_tags(data.get("name", ""))
+        description = strip_tags(data.get("description", ""))
+        category = data.get("category", "")
+        price = data.get("price", 0)
+        stock = data.get("stock", 0)
+        brand = data.get("brand", "")
+        thumbnail = data.get("thumbnail", "")
+
+        new_product = Product(
+            name=name,
+            description=description,
+            category=category,
+            price=price,
+            stock=stock,
+            brand=brand,
+            thumbnail=thumbnail,
+            user=user,
+        )
+        new_product.save()
+
+        return JsonResponse({"status": "success"}, status=200)
+
+    return JsonResponse({"status": "error"}, status=401)
+
+    
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -129,30 +180,6 @@ def delete_product_ajax(request, id):
         return JsonResponse({"status": "error", "message": f"Server error: {str(e)}"}, status=500)
 
 
-def get_product_json(request, id):
-
-    try:
-        product = get_object_or_404(Product, pk=id)
-        
-        if not request.user.is_authenticated:
-            return JsonResponse({"status": "error", "message": "User not authenticated"}, status=401)
-        
-        data = {
-            'id': str(product.id),
-            'name': product.name,
-            'price': float(product.price) if product.price is not None else 0.0,
-            'description': product.description,
-            'image': product.thumbnail, 
-            'category': product.category,
-            'stock': product.stock,
-            'brand': product.brand,
-            'views': product.product_views,
-            'user_id': product.user_id,
-        }
-        return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=404)
-
 
 @login_required(login_url='/login')
 def show_products(request, id):
@@ -166,10 +193,11 @@ def show_products(request, id):
     context = {'product': product}
     return render(request, "product_details.html", context)
 
-
 def show_json(request):
     try:
-        product_list = Product.objects.all().order_by('-id')
+        user = request.user
+        product_list = Product.objects.filter(user=user).order_by('-id')
+        
         data = []
         for product in product_list:
             try:
@@ -188,7 +216,7 @@ def show_json(request):
                     'name': product.name,
                     'price': price_value,
                     'description': product.description or '',
-                    'image': product.thumbnail or '',  
+                    'image': product.thumbnail or '',
                     'category': product.category or 'other',
                     'stock': int(product.stock) if product.stock is not None else 0,
                     'brand': product.brand or '',
@@ -196,13 +224,14 @@ def show_json(request):
                     'user': product.user_id,
                 }
             })
+        
         return JsonResponse(data, safe=False)
+        
     except Exception as e:
         print(f"Error in show_json: {e}")
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
-
 
 def show_xml(request):
     product_list = Product.objects.all()

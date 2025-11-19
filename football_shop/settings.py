@@ -29,7 +29,7 @@ PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "rayna-balqis-decathlan.pbp.cs.ui.ac.id"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "rayna-balqis-decathlan.pbp.cs.ui.ac.id", "10.0.2.2"]
 CSRF_TRUSTED_ORIGINS = [
     'https://rayna-balqis-decathlan.pbp.cs.ui.ac.id',
     'http://localhost:8000',
@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'authentication',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'football_shop.urls'
@@ -79,7 +82,12 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'football_shop.wsgi.application'
-
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
